@@ -1,0 +1,7 @@
+# build directory
+/target
+
+# mac shit
+.DS_Store
+
+# hi lol
