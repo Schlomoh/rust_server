@@ -1,38 +1,41 @@
+use super::logging::Mode;
 use std::env;
 
-use super::logging::Logger;
+pub struct Args {
+    pub verbosity: Mode,
+}
 
-pub fn handle_args() -> Logger {
-    struct Mode {
-        val: i8,
-    }
+fn print_verbosity(verbosity: &Mode) {
+    let normal = String::from("\x1b[0m");
+    let bold = String::from("\x1b[1m");
+    println!(
+        "\nVerbosity set to: {}{}{} \n",
+        bold,
+        verbosity.to_string(),
+        normal
+    );
+}
 
-    impl Mode {
-        fn info(&self) {
-            let mut out = String::from("OFF");
-            let normal = String::from("\x1b[0m");
-            let bold = String::from("\x1b[1m");
-            let blinking = String::from("\x1b[5m");
-            if self.val == 1 {
-                out = String::from("ON")
-            }
-            println!("\nVerbose debug mode: {}{}{} \n", &bold, &out, &normal);
-        }
-    }
-
-    let mut mode = Mode { val: 0 };
-
-    // parse arguments
+pub fn parse_args() -> Args {
     let args: Vec<String> = env::args().collect();
-    println!("\nArgument vector: {:?}", &args);
-
-    for arg in &args {
-        if arg == "debug" {
-            mode.val = 1;
+    let args_len = args.len();
+    let mut verbosity: Mode = Mode::Warning; // default
+    let mut value: String;
+    for (i, arg) in args.iter().enumerate() {
+        if i < args_len - 1 {
+            value = args[i + 1].to_lowercase();
+            if arg == "-v" || arg == "--verbosity" {
+                if value == "info" {
+                    verbosity = Mode::Info;
+                } else if value == "error" {
+                    verbosity = Mode::Error;
+                } else {
+                    println!("Unknown verbosity level: {}", value);
+                    println!("Setting verbosity to default.");
+                }
+            }
         }
     }
-    mode.info();
-    let logger = Logger { verbose: mode.val };
-
-    logger
+    print_verbosity(&verbosity);
+    return Args { verbosity };
 }
